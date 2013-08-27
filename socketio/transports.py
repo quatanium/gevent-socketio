@@ -256,13 +256,16 @@ class WebsocketTransport(BaseTransport):
 
         def read_from_ws():
             while True:
-                message = websocket.receive()
+                try:
+                    message = websocket.receive()
+                except (WebSocketError, TypeError):
+                    socket.disconnect()
+                    break
 
                 if message is None:
                     break
-                else:
-                    if message is not None:
-                        socket.put_server_msg(message)
+
+                socket.put_server_msg(message)
 
         socket.spawn(send_into_ws)
         socket.spawn(read_from_ws)
