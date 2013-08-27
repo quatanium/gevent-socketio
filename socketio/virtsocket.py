@@ -387,17 +387,7 @@ class Socket(object):
             elif endpoint in self.active_ns:
                 pkt_ns = self.active_ns[endpoint]
             else:
-                new_ns_class = self.namespaces[endpoint]
-                pkt_ns = new_ns_class(self.environ, endpoint,
-                                        request=self.request)
-                # This calls initialize() on all the classes and mixins, etc..
-                # in the order of the MRO
-                for cls in type(pkt_ns).__mro__:
-                    if hasattr(cls, 'initialize'):
-                        cls.initialize(pkt_ns)  # use this instead of __init__,
-                                                # for less confusion
-
-                self.active_ns[endpoint] = pkt_ns
+                pkt_ns = self.create_ns(endpoint)
 
             retval = pkt_ns.process_packet(pkt)
 
@@ -418,6 +408,26 @@ class Socket(object):
                                         # when its not a
                                         # user-initiated disconnect
                 return
+
+    def create_ns(self, endpoint = ''):
+        """Create new active namespace."""
+        # Return early if namespace exists.
+        if endpoint in self.active_ns:
+            return
+        
+        new_ns_class = self.namespaces[endpoint]
+        pkt_ns = new_ns_class(self.environ, endpoint,
+                                request=self.request)
+        # This calls initialize() on all the classes and mixins, etc..
+        # in the order of the MRO
+        for cls in type(pkt_ns).__mro__:
+            if hasattr(cls, 'initialize'):
+                cls.initialize(pkt_ns)  # use this instead of __init__,
+                                        # for less confusion
+
+        self.active_ns[endpoint] = pkt_ns
+
+        return pkt_ns
 
     def _spawn_receiver_loop(self):
         """Spawns the reader loop.  This is called internall by
