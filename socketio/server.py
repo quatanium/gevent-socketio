@@ -52,6 +52,9 @@ class SocketIOServer(WSGIServer):
             server to write its access log.  If not specified, it
             is sent to `stderr` (with gevent 0.13).
 
+        :param create_ns_on_open: Boolean describing whether or not to
+            create a new namespace instance on each socket.io connection.
+            Default False
         """
         self.sockets = {}
         if 'namespace' in kwargs:
@@ -81,7 +84,8 @@ class SocketIOServer(WSGIServer):
             'close_timeout': 60,
             'heartbeat_interval': 25,
         }
-        for f in ('heartbeat_timeout', 'heartbeat_interval', 'close_timeout'):
+        for f in ('heartbeat_timeout', 'heartbeat_interval',
+                        'close_timeout', 'create_ns_on_open'):
             if f in kwargs:
                 self.config[f] = int(kwargs.pop(f))
 

@@ -79,6 +79,10 @@ def socketio_manage(environ, namespaces, request=None, error_handler=None,
     if json_dumps:
         socket._set_json_dumps(json_dumps)
 
+    if socket.config.get('create_ns_on_open') \
+                    and not socket.active_ns.get(''):
+        socket.create_ns()
+
     receiver_loop = socket._spawn_receiver_loop()
 
     gevent.joinall([receiver_loop])
